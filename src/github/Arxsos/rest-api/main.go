@@ -21,6 +21,30 @@ func getHour(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("send okey")
 }
 
+// Normal post
+func tryPost(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "application/json")
+
+	if err := r.ParseForm(); err != nil {
+		panic(err)
+	}
+	fmt.Fprintf(w, "Post from website! r.PostFrom = %v\n", len(r.PostForm))
+	test := r.FormValue("test")
+	fmt.Fprintf(w, "Name = %s\n", test)
+	fmt.Println(test)
+}
+
+// POST with JSON
+func test(rw http.ResponseWriter, req *http.Request) {
+	decoder := json.NewDecoder(req.Body)
+	var t test_struct
+	err := decoder.Decode(&t)
+	if err != nil {
+		panic(err)
+	}
+	log.Println(t.test)
+}
+
 // our main function
 func main() {
 	// define new router
@@ -28,6 +52,12 @@ func main() {
 
 	// handler
 	router.HandleFunc("/api/hour", getHour).Methods("GET")
+
+	//no JSON
+	router.HandleFunc("/api/tryPost", tryPost).Methods("POST")
+
+	//WITH JSON
+	router.HandleFunc("/api/tryPostJSON", test).Methods("POST")
 
 	// take care of fatal error
 	log.Fatal(http.ListenAndServe(":8001", router))
